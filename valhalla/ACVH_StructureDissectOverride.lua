@@ -8499,10 +8499,12 @@ function getStructByName(name)
     end
     return nil
 end
-function checkStructHash(nameHash)
-	local hashList = getNameHashList()
-    for i = 1,#hashList do if nameHash == hashList[i][1] then return hashList[i][2] end end
-    return nil
+function initializeStructHashes()
+	local hashList = readFunc('getNameHashList')()
+    for i = 1,#hashList do
+		local tempHash = string.format("%X",hashList[i][1])
+        _G['hash_'..tempHash] =  hashList[i][2]
+    end
 end
 function swapEndian(int)
 	local bt = dwordToByteTable(int)
@@ -8521,10 +8523,9 @@ function getName(base)
     local addr = getAddressFromOpcode(getNameFunction)
 	addr = readPointer(addr)
 	if addr == nil then return nil end
-    local nameHash = swapEndian(readInteger(addr+0x1C))
-    local name = checkStructHash(nameHash)
-    if name == nil then name = nameHash end
-    return name
+    local intHash = swapEndian(readInteger(addr+0x1C))
+    local nameHash = string.format("%X",intHash)
+    return _G['hash_'..nameHash]
 end
 function createACStructure(struct,base)
     local sName = getName(base)
